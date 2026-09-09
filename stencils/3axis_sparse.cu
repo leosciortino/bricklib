@@ -1,5 +1,5 @@
 //
-// Created by Tuowen Zhao on 12/5/18.
+// Created by Leo Sciortino on 9/8/26 Adapted from Tuowen Zhao's code.
 //
 
 #include "brick-cuda.h"
@@ -106,25 +106,12 @@ void d3pt7_sparsecu(double line_width) {
           bInfo.adj[i][n++] = neighbor_id;
         }
   }
-
   
-  // Need a way given a f: brickid -> neighbor
-  // so we need a way to go from brickid -> coor
-  // then coord -> neighbors
-  // then get neighbors brick ids 
- 
-
-  
-  
-
   // Total number of bricks which includes "active bricks" and boundry "zero bricks"
   long num_total_bricks = sparse_id_to_logical_coord.size();
-  // long num_zero_boundary_bricks = num_total_bricks-active_brick_count;
   
-  // unsigned size = TILE * TILE * TILE * active_brick_count * sizeof(bElem);
+
   bElem *in_ptr = randomArray({active_brick_count, TILE, TILE, TILE});
-  // bElem *out_ptr = zeroArray({active_brick_count, TILE, TILE, TILE});
-  // bElem *zero_boundary_vals = zeroArray({num_zero_boundary_bricks, TILE, TILE, TILE});
   bElem *coeff_dev;
   {
     unsigned size = 129 * sizeof(bElem);
@@ -132,17 +119,6 @@ void d3pt7_sparsecu(double line_width) {
     cudaMemcpy(coeff_dev, coeff, size, cudaMemcpyHostToDevice);
   }
 
-
-  // // Allocate in and out device arrays
-  // bElem *in_dev, *out_dev;
-  // {
-  //   cudaMalloc(&in_dev, size);
-  //   cudaMemcpy(in_dev, in_ptr, size, cudaMemcpyHostToDevice);
-  // }
-  // {
-  //   cudaMalloc(&out_dev, size);
-  //   cudaMemcpy(out_dev, out_ptr, size, cudaMemcpyHostToDevice);
-  // }
 
   // moveBrickInfo
   BrickInfo<3> *bInfo_dev;
