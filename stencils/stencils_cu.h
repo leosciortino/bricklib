@@ -29,6 +29,8 @@ double cutime_func(T func) {
 
 void d3pt7cu();
 
+void d3pt7_sparsecu(double line_width);
+
 void d3condcu();
 
 #endif //BRICK_STENCILS_CU_H

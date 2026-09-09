@@ -55,6 +55,42 @@ if (CMAKE_CUDA_COMPILER)
     target_include_directories(single-cuda PUBLIC
             "${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES}"
             )
+
+        # New sparse CUDA benchmark
+    set(SPARSE_C3AXIS_INCLUDE_DIRS
+        "${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES}"
+    )
+
+    VSTARGET(
+        SPARSE_C3AXIS
+        ../stencils/3axis_sparse.cu
+        ../stencils/3axis_sparse-out.cu
+    )
+
+    add_executable(
+        single-sparse-cuda
+        sparse_cuda.cpp
+        ${VSTARGET_SPARSE_C3AXIS_OUTPUT}
+    )
+    set_source_files_properties(sparse_cuda.cpp PROPERTIES LANGUAGE CUDA)
+
+    target_link_libraries(
+        single-sparse-cuda
+        brickhelper
+    )
+    target_link_options(single-sparse-cuda PRIVATE
+        "-L${CMAKE_CUDA_COMPILER_TOOLKIT_ROOT}/lib64"
+    )
+
+    set_target_properties(
+        single-sparse-cuda
+        PROPERTIES OUTPUT_NAME sparse-cuda
+    )
+
+    target_include_directories(
+        single-sparse-cuda PUBLIC
+        "${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES}"
+    )
 endif ()
 
 if (USE_HIP)
@@ -80,4 +116,3 @@ if (USE_DPC)
    target_include_directories(single-dpc PUBLIC "$(which dpcpp)/../../include/sycl/")
    set_target_properties(single-dpc PROPERTIES OUTPUT_NAME dpc)
 endif ()
-
