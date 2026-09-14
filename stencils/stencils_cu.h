@@ -6,7 +6,9 @@
 #define BRICK_STENCILS_CU_H
 
 #include <brick-cuda.h>
+#include "cudavfold.h"
 #include "stencils.h"
+#include "sparse_stencils.h"
 
 #define CU_ITER 100
 
@@ -28,8 +30,6 @@ double cutime_func(T func) {
 }
 
 void d3pt7cu();
-
-void d3pt7_sparsecu(double line_width);
 
 void d3condcu();
 

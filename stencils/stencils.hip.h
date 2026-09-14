@@ -6,7 +6,9 @@
 #define BRICK_STENCILS_HIP_H
 
 #include <brick-hip.h>
+#include "hipvfold.h"
 #include "stencils.h"
+#include "sparse_stencils.h"
 
 #define HIP_ITER 100
 

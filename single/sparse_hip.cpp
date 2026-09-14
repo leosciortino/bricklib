@@ -7,7 +7,7 @@
 #include <cmath>
 
 #include "stencils/macro_coeffs.h"
-#include "stencils/stencils_cu.h"
+#include "stencils/stencils.hip.h"
 
 int main(int argc, char **argv) {
   if (argc > 5) {

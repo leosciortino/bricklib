@@ -60,6 +60,14 @@ if (CMAKE_CUDA_COMPILER)
     set(SPARSE_C3AXIS_INCLUDE_DIRS
         "${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES}"
     )
+    set(SPARSE_C3AXIS_DEPENDS
+        "${CMAKE_CURRENT_SOURCE_DIR}/../stencils/python/star_7.py"
+        "${CMAKE_CURRENT_SOURCE_DIR}/../stencils/python/star_13.py"
+        "${CMAKE_CURRENT_SOURCE_DIR}/../stencils/python/star_19.py"
+        "${CMAKE_CURRENT_SOURCE_DIR}/../stencils/python/star_25.py"
+        "${CMAKE_CURRENT_SOURCE_DIR}/../stencils/python/cube_27.py"
+        "${CMAKE_CURRENT_SOURCE_DIR}/../stencils/python/cube_125.py"
+    )
 
     VSTARGET(
         SPARSE_C3AXIS
@@ -93,7 +101,7 @@ if (CMAKE_CUDA_COMPILER)
     )
 endif ()
 
-if (USE_HIP)
+if (BRICK_USE_HIP)
     set(H3AXIS_INCLUDE_DIRS "${HIP_PATH}/include")
     VSTARGET(H3AXIS ../stencils/3axis.hip.cpp ../stencils/3axis-out.hip.cpp)
     set(HIP_SRCS hip.cpp ${VSTARGET_H3AXIS_OUTPUT})
@@ -102,6 +110,20 @@ if (USE_HIP)
     target_link_libraries(single-hip brickhelper hip::host)
     set_target_properties(single-hip
             PROPERTIES OUTPUT_NAME hip)
+
+    set(SPARSE_H3AXIS_INCLUDE_DIRS "${HIP_PATH}/include")
+    VSTARGET(SPARSE_H3AXIS
+            ../stencils/3axis_sparse.hip.cpp
+            ../stencils/3axis_sparse-out.hip.cpp)
+    set(SPARSE_HIP_SRCS sparse_hip.cpp ${VSTARGET_SPARSE_H3AXIS_OUTPUT})
+    set_source_files_properties(${SPARSE_HIP_SRCS}
+            PROPERTIES HIP_SOURCE_PROPERTY_FORMAT 1)
+    hip_add_executable(single-sparse-hip ${SPARSE_HIP_SRCS}
+            HIPCC_OPTIONS --offload-arch=gfx942
+            CLANG_OPTIONS ${CMAKE_CXX_FLAGS})
+    target_link_libraries(single-sparse-hip brickhelper hip::host)
+    set_target_properties(single-sparse-hip
+            PROPERTIES OUTPUT_NAME sparse-hip)
 endif ()
 
 if (USE_DPC)

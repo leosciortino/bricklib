@@ -2,11 +2,11 @@
 // Created by Leo Sciortino on 9/8/26 Adapted from Tuowen Zhao's code.
 //
 
-#include "brick-cuda.h"
+#include "brick-hip.h"
 #include "brick.h"
 #include "macro_coeffs.h"
 #include "stencils/stencils.h"
-#include "stencils_cu.h"
+#include "stencils.hip.h"
 #include <algorithm>
 #include <cmath>
 #include <iostream>
@@ -15,7 +15,7 @@
 #include "bricksetup.h"
 #include "multiarray.h"
 #include "brickcompare.h"
-#include "cudavfold.h"
+#include "hipvfold.h"
 #include "vecscatter.h"
 
 __global__ void
@@ -79,7 +79,7 @@ void launch_star_sparsecu(unsigned stencil_radius,
                           unsigned active_brick_count,
                           const Brick<Dim<BDIM>, Dim<VFOLD>> &bIn,
                           const Brick<Dim<BDIM>, Dim<VFOLD>> &bOut) {
-  dim3 block(active_brick_count), thread(32);
+  dim3 block(active_brick_count), thread(64);
   switch (stencil_radius) {
     case 1:
       d3star7_brick_trans<<<block, thread>>>(active_brick_count, bIn, bOut);
@@ -102,7 +102,7 @@ void launch_cube_sparsecu(unsigned stencil_radius,
                           unsigned active_brick_count,
                           const Brick<Dim<BDIM>, Dim<VFOLD>> &bIn,
                           const Brick<Dim<BDIM>, Dim<VFOLD>> &bOut) {
-  dim3 block(active_brick_count), thread(32);
+  dim3 block(active_brick_count), thread(64);
   switch (stencil_radius) {
     case 1:
       d3cube27_brick_trans<<<block, thread>>>(active_brick_count, bIn, bOut);
@@ -196,11 +196,11 @@ void run_sparsecu(const SparseIndicator &indicator,
   bElem *in_ptr = randomArray({active_brick_count, TILE, TILE, TILE});
   // moveBrickInfo
   BrickInfo<3> *bInfo_dev;
-  BrickInfo<3> _bInfo_dev = movBrickInfo(bInfo, cudaMemcpyHostToDevice);
+  BrickInfo<3> _bInfo_dev = movBrickInfo(bInfo, hipMemcpyHostToDevice);
   {
     unsigned size = sizeof(BrickInfo < 3 > );
-    cudaMalloc(&bInfo_dev, size);
-    cudaMemcpy(bInfo_dev, &_bInfo_dev, size, cudaMemcpyHostToDevice);
+    hipMalloc(&bInfo_dev, size);
+    hipMemcpy(bInfo_dev, &_bInfo_dev, size, hipMemcpyHostToDevice);
   }
 
   // Create BrickStorage
@@ -238,7 +238,7 @@ void run_sparsecu(const SparseIndicator &indicator,
         }
 
   // movBrickStorage
-  BrickStorage bStorage_dev = movBrickStorage(bStorage, cudaMemcpyHostToDevice);
+  BrickStorage bStorage_dev = movBrickStorage(bStorage, hipMemcpyHostToDevice);
   Brick<Dim<BDIM>, Dim<VFOLD>> bIn_dev(bInfo_dev, bStorage_dev, 0);
   Brick<Dim<BDIM>, Dim<VFOLD>> bOut_dev(bInfo_dev, bStorage_dev, bSize);
 
@@ -246,12 +246,12 @@ void run_sparsecu(const SparseIndicator &indicator,
     launch_stencil(active_brick_count, bIn_dev, bOut_dev);
   };
 
-  std::cout << "Trans: " << cutime_func(brick_func_trans) << std::endl;
+  std::cout << "Trans: " << hiptime_func(brick_func_trans) << std::endl;
 
-  cudaMemcpy(bStorage.dat.get(), bStorage_dev.dat.get(),
-             bStorage.chunks * bStorage.step * sizeof(bElem),
-             cudaMemcpyDeviceToHost);
-  cudaDeviceSynchronize();
+  hipMemcpy(bStorage.dat.get(), bStorage_dev.dat.get(),
+            bStorage.chunks * bStorage.step * sizeof(bElem),
+            hipMemcpyDeviceToHost);
+  hipDeviceSynchronize();
 
   bool matches = true;
   for (unsigned b = 0; b < active_brick_count; ++b)
@@ -269,8 +269,8 @@ void run_sparsecu(const SparseIndicator &indicator,
 
   free(in_ptr);
   free(bInfo.adj);
-  cudaFree(_bInfo_dev.adj);
-  cudaFree(bInfo_dev);
+  hipFree(_bInfo_dev.adj);
+  hipFree(bInfo_dev);
   if (!matches)
     throw std::runtime_error("sparse brick result mismatch");
 

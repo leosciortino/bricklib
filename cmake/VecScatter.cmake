@@ -32,6 +32,7 @@ macro(VSTARGET Name Input Output)
             COMMAND ${CMAKE_COMMAND} -E env VSCPP=${VS_PREPROCESSOR} ${Python_EXECUTABLE} ${VecScatter_SCRIPT} "${Input}" "${VSTARGET_${Name}_OUTPUT}" -- ${CMAKE_CXX_FLAGS_LIST} ${COMPILE_OPTS} ${COMPILE_DEFS} ${${Name}_COMPILE_OPTIONS} ${VSTARGET_INC}
             VERBATIM
             MAIN_DEPENDENCY "${Input}"
+            DEPENDS ${${Name}_DEPENDS}
             COMMENT "[VS][${Name}] Vector Scatter transformation"
             WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
 endmacro()
